@@ -1,0 +1,24 @@
+! FRRouting OSPF Configuration for {{ hostname | default('Router') }}
+configure terminal
+!
+{% if interfaces is defined -%}
+{% for iface in interfaces -%}
+interface {{ iface.name }}
+{% if iface.ip is defined %}
+ ip address {{ iface.ip }}
+{% endif -%}
+{% if iface.cost is defined %}
+ ip ospf cost {{ iface.cost }}
+{% endif -%}
+exit
+!
+{% endfor -%}
+{% endif -%}
+router ospf
+ ospf router-id {{ router_id }}
+{% for net in networks %}
+ network {{ net.prefix }} area {{ net.area_id | default('0.0.0.0') }}
+{% endfor %}
+exit
+!
+write memory

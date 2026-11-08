@@ -1,0 +1,22 @@
+# MikroTik OSPF Configuration for {{ hostname | default('Router') }}
+/routing ospf instance
+set [ find default=yes ] router-id={{ router_id }}
+
+{% for area in areas | default([{'name': 'backbone', 'area_id': '0.0.0.0'}]) -%}
+{% if area.name != 'backbone' -%}
+/routing ospf area
+add name={{ area.name }} area-id={{ area.area_id }}
+{% endif -%}
+{% endfor -%}
+
+/routing ospf network
+{% for net in networks -%}
+add network={{ net.prefix }} area={{ net.area | default('backbone') }}
+{% endfor -%}
+
+{% if interfaces is defined -%}
+/routing ospf interface
+{% for iface in interfaces -%}
+add interface={{ iface.name }} cost={{ iface.cost | default(10) }} network-type={{ iface.type | default('broadcast') }}
+{% endfor -%}
+{% endif %}
